@@ -220,7 +220,8 @@ export default function AdminSettingsPage() {
         <div className="flex gap-1 bg-[#efefef] rounded-full p-1 w-fit mb-8 flex-wrap">
           {([
             ['hero',  '히어로 이미지'],
-            ['cards', '섹션 카드 이미지'],
+            ['cards', '섹션 카드'],
+            ['about', 'About 이미지'],
             ['texts', '페이지 텍스트'],
           ] as const).map(([key, label]) => (
             <button
@@ -365,6 +366,101 @@ export default function AdminSettingsPage() {
                 savedHero ? 'bg-[#4a8c2a] text-white' : 'bg-[#0a0a0a] text-white hover:bg-[#262626]'
               } disabled:opacity-50`}>
               {savedHero ? <><Check size={16} /> 저장됐습니다!</> : savingHero ? '저장 중...' : <><Save size={16} /> 히어로 이미지 저장</>}
+            </button>
+          </div>
+        )}
+
+        {/* ════════════════ About 이미지 탭 ════════════════ */}
+        {activeTab === 'about' && (
+          <div className="space-y-6">
+            <div className="bg-[#f0f9f0] border border-[#b8e0b8] rounded-2xl p-5">
+              <p className="text-sm font-semibold text-[#2a6a2a] mb-1">📌 About 페이지 이미지 설정</p>
+              <p className="text-xs text-[#2a6a2a] leading-relaxed">
+                소개 섹션 오른쪽 이미지와 브랜드 철학 카드(사람/지역/기록/기획) 배경 이미지를 설정합니다.
+              </p>
+            </div>
+
+            {/* 소개 이미지 */}
+            <div className="bg-white rounded-2xl border border-[#efefef] p-6 space-y-4">
+              <h2 className="text-sm font-semibold text-[#0a0a0a] pb-3 border-b border-[#f0f0f0]">소개 섹션 이미지</h2>
+              <p className="text-xs text-[#a0a0a0]">About 페이지 상단, 소개 텍스트 오른쪽에 표시되는 사진입니다.</p>
+              <div className="flex gap-4 items-start">
+                {/* 미리보기 */}
+                <div className="w-28 shrink-0 aspect-[4/3] rounded-xl overflow-hidden bg-[#efefef]">
+                  {aboutImages.introImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={aboutImages.introImage} alt="" className="w-full h-full object-cover"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-xs text-[#c8c8c8]">미리보기</span>
+                    </div>
+                  )}
+                </div>
+                {/* URL 입력 */}
+                <div className="flex-1">
+                  <label className="block text-xs text-[#737373] mb-1.5">이미지 URL</label>
+                  <div className="relative">
+                    <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c8c8c8]" />
+                    <input type="url"
+                      value={aboutImages.introImage ?? ''}
+                      onChange={e => setAboutImages(prev => ({ ...prev, introImage: e.target.value }))}
+                      placeholder="https://i.imgur.com/example.jpg"
+                      className="w-full text-sm border border-[#efefef] rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-[#a0a0a0] transition-colors placeholder:text-[#d0d0d0]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 철학 카드 이미지 4개 */}
+            <div className="bg-white rounded-2xl border border-[#efefef] p-6 space-y-5">
+              <h2 className="text-sm font-semibold text-[#0a0a0a] pb-3 border-b border-[#f0f0f0]">브랜드 철학 카드 이미지</h2>
+              <p className="text-xs text-[#a0a0a0]">사람·지역·기록·기획 4개 카드의 배경 이미지입니다. 이미지가 없으면 검정 배경으로 표시됩니다.</p>
+              {([
+                { key: 'people',   label: '사람 (People)' },
+                { key: 'place',    label: '지역 (Place)' },
+                { key: 'archive',  label: '기록 (Archive)' },
+                { key: 'curation', label: '기획 (Curation)' },
+              ] as const).map(({ key, label }) => (
+                <div key={key} className="flex gap-4 items-start pb-5 border-b border-[#f8f8f8] last:border-0 last:pb-0">
+                  {/* 미리보기 */}
+                  <div className="w-20 h-14 shrink-0 rounded-lg overflow-hidden bg-[#0a0a0a] relative">
+                    {aboutImages.valueImages?.[key] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={aboutImages.valueImages[key]} alt="" className="w-full h-full object-cover opacity-50"
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-[10px] text-white/30">{label.split(' ')[0]}</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* URL 입력 */}
+                  <div className="flex-1">
+                    <label className="block text-xs text-[#737373] mb-1.5">{label}</label>
+                    <div className="relative">
+                      <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c8c8c8]" />
+                      <input type="url"
+                        value={aboutImages.valueImages?.[key] ?? ''}
+                        onChange={e => setAboutImages(prev => ({
+                          ...prev,
+                          valueImages: { ...prev.valueImages, [key]: e.target.value },
+                        }))}
+                        placeholder="https://i.imgur.com/example.jpg"
+                        className="w-full text-sm border border-[#efefef] rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-[#a0a0a0] transition-colors placeholder:text-[#d0d0d0]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button onClick={saveAboutImages} disabled={savingAbout}
+              className={`w-full py-4 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
+                savedAbout ? 'bg-[#4a8c2a] text-white' : 'bg-[#0a0a0a] text-white hover:bg-[#262626]'
+              } disabled:opacity-50`}>
+              {savedAbout ? <><Check size={16} /> 저장됐습니다!</> : savingAbout ? '저장 중...' : <><Save size={16} /> About 이미지 저장</>}
             </button>
           </div>
         )}

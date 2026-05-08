@@ -1,12 +1,16 @@
 import fs from 'fs'
 import path from 'path'
-import type { SiteSettings, PageTexts, HeroImage, SectionCard } from '@/types'
+import type { SiteSettings, PageTexts, HeroImage, SectionCard, AboutImages } from '@/types'
 
 const SETTINGS_PATH = path.join(process.cwd(), 'data', 'site-settings.json')
 
 const DEFAULT_SETTINGS: SiteSettings = {
   heroImages: [],
   heroInterval: 5,
+  aboutImages: {
+    introImage: '',
+    valueImages: { people: '', place: '', archive: '', curation: '' },
+  },
   sectionCards: [
     { id: 'archive',    imageUrl: '', imageOverlay: 40 },
     { id: 'publishing', imageUrl: '', imageOverlay: 20 },
@@ -83,6 +87,13 @@ export function updateHeroImages(images: HeroImage[], interval?: number): SiteSe
 export function updateSectionCards(cards: SectionCard[]): SiteSettings {
   const current = getSettings()
   const updated: SiteSettings = { ...current, sectionCards: cards }
+  saveSettings(updated)
+  return updated
+}
+
+export function updateAboutImages(aboutImages: AboutImages): SiteSettings {
+  const current = getSettings()
+  const updated: SiteSettings = { ...current, aboutImages }
   saveSettings(updated)
   return updated
 }

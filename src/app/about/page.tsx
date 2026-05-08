@@ -35,6 +35,7 @@ const values = [
 export default function AboutPage() {
   const settings = getSettings()
   const t = settings.texts
+  const ai = settings.aboutImages ?? {}
 
   const lines = (str?: string) => (str ?? '').split('\n')
 
@@ -69,10 +70,18 @@ export default function AboutPage() {
             </AnimateIn>
             <AnimateIn delay={120}>
               <div className="aspect-[4/3] bg-[#efefef] rounded-2xl overflow-hidden">
-                {/* 실제 공간 사진으로 교체 예정 */}
-                <div className="w-full h-full bg-gradient-to-br from-[#e8e5e0] to-[#d5d0c8] flex items-end p-8">
-                  <p className="text-[#a0a0a0] text-sm">책방 심다 — 2016–2026</p>
-                </div>
+                {ai.introImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={ai.introImage}
+                    alt="심다 소개"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[#e8e5e0] to-[#d5d0c8] flex items-end p-8">
+                    <p className="text-[#a0a0a0] text-sm">책방 심다 — 2016–2026</p>
+                  </div>
+                )}
               </div>
             </AnimateIn>
           </div>
@@ -89,19 +98,37 @@ export default function AboutPage() {
             </h2>
           </AnimateIn>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/10">
-            {values.map((v, i) => (
-              <AnimateIn key={v.keyword} delay={i * 80}>
-                <div className="bg-[#0a0a0a] p-10 md:p-12 space-y-4">
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-white font-semibold text-2xl">{v.keyword}</span>
-                    <span className="text-white/25 text-sm tracking-widest uppercase">{v.en}</span>
+            {values.map((v, i) => {
+              const imgKey = v.en.toLowerCase() as 'people' | 'place' | 'archive' | 'curation'
+              const cardImg = ai.valueImages?.[imgKey] ?? ''
+              return (
+                <AnimateIn key={v.keyword} delay={i * 80}>
+                  <div className="relative bg-[#0a0a0a] overflow-hidden">
+                    {/* 카드 배경 이미지 */}
+                    {cardImg && (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={cardImg}
+                          alt={v.keyword}
+                          className="absolute inset-0 w-full h-full object-cover opacity-30"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+                      </>
+                    )}
+                    <div className="relative p-10 md:p-12 space-y-4">
+                      <div className="flex items-baseline gap-3">
+                        <span className="text-white font-semibold text-2xl">{v.keyword}</span>
+                        <span className="text-white/25 text-sm tracking-widest uppercase">{v.en}</span>
+                      </div>
+                      <p className="text-white/60 text-sm md:text-base leading-relaxed">
+                        {v.desc}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-white/60 text-sm md:text-base leading-relaxed">
-                    {v.desc}
-                  </p>
-                </div>
-              </AnimateIn>
-            ))}
+                </AnimateIn>
+              )
+            })}
           </div>
         </div>
       </section>

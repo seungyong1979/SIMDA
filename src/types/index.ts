@@ -105,6 +105,16 @@ export interface SectionCard {
   imageOverlay?: number // 0~100
 }
 
+export interface AboutImages {
+  introImage?: string    // 소개 섹션 오른쪽 이미지
+  valueImages?: {        // 철학 카드 4개 이미지 (사람/지역/기록/기획)
+    people?: string
+    place?: string
+    archive?: string
+    curation?: string
+  }
+}
+
 export interface PageTexts {
   // Home
   homeTagline?: string        // "Suncheon · Since 2016"
@@ -139,8 +149,9 @@ export interface PageTexts {
 }
 
 export interface SiteSettings {
-  heroImages: HeroImage[]     // 최대 5장
-  heroInterval: number        // 슬라이드 전환 간격 (초)
+  heroImages: HeroImage[]      // 최대 5장
+  heroInterval: number         // 슬라이드 전환 간격 (초)
   sectionCards?: SectionCard[] // 홈 섹션 카드 배경 이미지
+  aboutImages?: AboutImages    // About 페이지 이미지
   texts: PageTexts
 }
