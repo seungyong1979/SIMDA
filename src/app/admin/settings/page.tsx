@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, X, GripVertical, Save, Check, Link as LinkIcon } from 'lucide-react'
-import type { SiteSettings, HeroImage, SectionCard } from '@/types'
+import type { SiteSettings, HeroImage, SectionCard, AboutImages } from '@/types'
 
 const TEXT_FIELDS = [
   {
@@ -83,23 +83,33 @@ const DEFAULT_CARDS: SectionCard[] = [
   { id: 'goods',      imageUrl: '', imageOverlay: 20 },
 ]
 
+const DEFAULT_ABOUT_IMAGES: AboutImages = {
+  introImage: '',
+  valueImages: { people: '', place: '', archive: '', curation: '' },
+}
+
+type TabKey = 'hero' | 'cards' | 'about' | 'texts'
+
 export default function AdminSettingsPage() {
   const router = useRouter()
 
-  const [settings, setSettings]         = useState<SiteSettings | null>(null)
-  const [texts, setTexts]               = useState<Record<string, string>>({})
-  const [heroImages, setHeroImages]     = useState<HeroImage[]>([])
-  const [heroInterval, setHeroInterval] = useState(5)
-  const [sectionCards, setSectionCards] = useState<SectionCard[]>(DEFAULT_CARDS)
-  const [newHeroUrl, setNewHeroUrl]     = useState('')
-  const [heroUrlError, setHeroUrlError] = useState('')
-  const [savingTexts, setSavingTexts]   = useState(false)
-  const [savingHero, setSavingHero]     = useState(false)
-  const [savingCards, setSavingCards]   = useState(false)
-  const [savedTexts, setSavedTexts]     = useState(false)
-  const [savedHero, setSavedHero]       = useState(false)
-  const [savedCards, setSavedCards]     = useState(false)
-  const [activeTab, setActiveTab]       = useState<'hero' | 'cards' | 'texts'>('hero')
+  const [settings, setSettings]           = useState<SiteSettings | null>(null)
+  const [texts, setTexts]                 = useState<Record<string, string>>({})
+  const [heroImages, setHeroImages]       = useState<HeroImage[]>([])
+  const [heroInterval, setHeroInterval]   = useState(5)
+  const [sectionCards, setSectionCards]   = useState<SectionCard[]>(DEFAULT_CARDS)
+  const [aboutImages, setAboutImages]     = useState<AboutImages>(DEFAULT_ABOUT_IMAGES)
+  const [newHeroUrl, setNewHeroUrl]       = useState('')
+  const [heroUrlError, setHeroUrlError]   = useState('')
+  const [savingTexts, setSavingTexts]     = useState(false)
+  const [savingHero, setSavingHero]       = useState(false)
+  const [savingCards, setSavingCards]     = useState(false)
+  const [savingAbout, setSavingAbout]     = useState(false)
+  const [savedTexts, setSavedTexts]       = useState(false)
+  const [savedHero, setSavedHero]         = useState(false)
+  const [savedCards, setSavedCards]       = useState(false)
+  const [savedAbout, setSavedAbout]       = useState(false)
+  const [activeTab, setActiveTab]         = useState<TabKey>('hero')
 
   useEffect(() => {
     fetch('/api/admin/settings')
@@ -115,10 +125,19 @@ export default function AdminSettingsPage() {
             return saved ? { ...def, ...saved } : def
           })
         )
+        setAboutImages({
+          introImage: data.aboutImages?.introImage ?? '',
+          valueImages: {
+            people:   data.aboutImages?.valueImages?.people   ?? '',
+            place:    data.aboutImages?.valueImages?.place    ?? '',
+            archive:  data.aboutImages?.valueImages?.archive  ?? '',
+            curation: data.aboutImages?.valueImages?.curation ?? '',
+          },
+        })
       })
   }, [])
 
-  // ── 히어로 이미지 ──────────────────────────────────
+  // ── 히어로 이미지 ─────────────────────────────────────
   const addHeroUrl = () => {
     const url = newHeroUrl.trim()
     if (!url) return
@@ -163,7 +182,7 @@ export default function AdminSettingsPage() {
     setTimeout(() => setSavedHero(false), 2500)
   }
 
-  // ── 섹션 카드 ──────────────────────────────────────
+  // ── 섹션 카드 ─────────────────────────────────────────
   const updateCard = (id: string, field: keyof SectionCard, value: string | number) =>
     setSectionCards(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c))
 
@@ -179,7 +198,20 @@ export default function AdminSettingsPage() {
     setTimeout(() => setSavedCards(false), 2500)
   }
 
-  // ── 텍스트 ─────────────────────────────────────────
+  // ── About 이미지 ──────────────────────────────────────
+  const saveAboutImages = async () => {
+    setSavingAbout(true)
+    await fetch('/api/admin/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'aboutImages', aboutImages }),
+    })
+    setSavingAbout(false)
+    setSavedAbout(true)
+    setTimeout(() => setSavedAbout(false), 2500)
+  }
+
+  // ── 텍스트 ────────────────────────────────────────────
   const saveTexts = async () => {
     setSavingTexts(true)
     await fetch('/api/admin/settings', {
@@ -223,7 +255,7 @@ export default function AdminSettingsPage() {
             ['cards', '섹션 카드'],
             ['about', 'About 이미지'],
             ['texts', '페이지 텍스트'],
-          ] as const).map(([key, label]) => (
+          ] as [TabKey, string][]).map(([key, label]) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
@@ -247,7 +279,7 @@ export default function AdminSettingsPage() {
               </p>
               <div className="mt-2 space-y-1 text-xs text-[#a06000]">
                 <p>• <strong>Imgur</strong>: imgur.com 업로드 → 이미지 우클릭 → &quot;이미지 주소 복사&quot; → <code className="bg-[#ffe0a0] px-1 rounded">https://i.imgur.com/xxxxx.jpg</code></p>
-                <p>• <strong>Google Drive</strong>: 공유 링크의 ID로 변환 → <code className="bg-[#ffe0a0] px-1 rounded">https://drive.google.com/uc?export=view&id=파일ID</code></p>
+                <p>• <strong>Google Drive</strong>: 공유 링크 ID로 변환 → <code className="bg-[#ffe0a0] px-1 rounded">https://drive.google.com/uc?export=view&amp;id=파일ID</code></p>
               </div>
             </div>
 
@@ -306,7 +338,6 @@ export default function AdminSettingsPage() {
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={img.url} alt="" className="w-full h-full object-cover"
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                          {/* 오버레이 미리보기 */}
                           <div className="absolute inset-0 bg-black rounded-lg"
                             style={{ opacity: (img.overlay ?? 40) / 100 }} />
                         </div>
@@ -370,101 +401,6 @@ export default function AdminSettingsPage() {
           </div>
         )}
 
-        {/* ════════════════ About 이미지 탭 ════════════════ */}
-        {activeTab === 'about' && (
-          <div className="space-y-6">
-            <div className="bg-[#f0f9f0] border border-[#b8e0b8] rounded-2xl p-5">
-              <p className="text-sm font-semibold text-[#2a6a2a] mb-1">📌 About 페이지 이미지 설정</p>
-              <p className="text-xs text-[#2a6a2a] leading-relaxed">
-                소개 섹션 오른쪽 이미지와 브랜드 철학 카드(사람/지역/기록/기획) 배경 이미지를 설정합니다.
-              </p>
-            </div>
-
-            {/* 소개 이미지 */}
-            <div className="bg-white rounded-2xl border border-[#efefef] p-6 space-y-4">
-              <h2 className="text-sm font-semibold text-[#0a0a0a] pb-3 border-b border-[#f0f0f0]">소개 섹션 이미지</h2>
-              <p className="text-xs text-[#a0a0a0]">About 페이지 상단, 소개 텍스트 오른쪽에 표시되는 사진입니다.</p>
-              <div className="flex gap-4 items-start">
-                {/* 미리보기 */}
-                <div className="w-28 shrink-0 aspect-[4/3] rounded-xl overflow-hidden bg-[#efefef]">
-                  {aboutImages.introImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={aboutImages.introImage} alt="" className="w-full h-full object-cover"
-                      onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-xs text-[#c8c8c8]">미리보기</span>
-                    </div>
-                  )}
-                </div>
-                {/* URL 입력 */}
-                <div className="flex-1">
-                  <label className="block text-xs text-[#737373] mb-1.5">이미지 URL</label>
-                  <div className="relative">
-                    <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c8c8c8]" />
-                    <input type="url"
-                      value={aboutImages.introImage ?? ''}
-                      onChange={e => setAboutImages(prev => ({ ...prev, introImage: e.target.value }))}
-                      placeholder="https://i.imgur.com/example.jpg"
-                      className="w-full text-sm border border-[#efefef] rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-[#a0a0a0] transition-colors placeholder:text-[#d0d0d0]"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 철학 카드 이미지 4개 */}
-            <div className="bg-white rounded-2xl border border-[#efefef] p-6 space-y-5">
-              <h2 className="text-sm font-semibold text-[#0a0a0a] pb-3 border-b border-[#f0f0f0]">브랜드 철학 카드 이미지</h2>
-              <p className="text-xs text-[#a0a0a0]">사람·지역·기록·기획 4개 카드의 배경 이미지입니다. 이미지가 없으면 검정 배경으로 표시됩니다.</p>
-              {([
-                { key: 'people',   label: '사람 (People)' },
-                { key: 'place',    label: '지역 (Place)' },
-                { key: 'archive',  label: '기록 (Archive)' },
-                { key: 'curation', label: '기획 (Curation)' },
-              ] as const).map(({ key, label }) => (
-                <div key={key} className="flex gap-4 items-start pb-5 border-b border-[#f8f8f8] last:border-0 last:pb-0">
-                  {/* 미리보기 */}
-                  <div className="w-20 h-14 shrink-0 rounded-lg overflow-hidden bg-[#0a0a0a] relative">
-                    {aboutImages.valueImages?.[key] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={aboutImages.valueImages[key]} alt="" className="w-full h-full object-cover opacity-50"
-                        onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-[10px] text-white/30">{label.split(' ')[0]}</span>
-                      </div>
-                    )}
-                  </div>
-                  {/* URL 입력 */}
-                  <div className="flex-1">
-                    <label className="block text-xs text-[#737373] mb-1.5">{label}</label>
-                    <div className="relative">
-                      <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c8c8c8]" />
-                      <input type="url"
-                        value={aboutImages.valueImages?.[key] ?? ''}
-                        onChange={e => setAboutImages(prev => ({
-                          ...prev,
-                          valueImages: { ...prev.valueImages, [key]: e.target.value },
-                        }))}
-                        placeholder="https://i.imgur.com/example.jpg"
-                        className="w-full text-sm border border-[#efefef] rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-[#a0a0a0] transition-colors placeholder:text-[#d0d0d0]"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button onClick={saveAboutImages} disabled={savingAbout}
-              className={`w-full py-4 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
-                savedAbout ? 'bg-[#4a8c2a] text-white' : 'bg-[#0a0a0a] text-white hover:bg-[#262626]'
-              } disabled:opacity-50`}>
-              {savedAbout ? <><Check size={16} /> 저장됐습니다!</> : savingAbout ? '저장 중...' : <><Save size={16} /> About 이미지 저장</>}
-            </button>
-          </div>
-        )}
-
         {/* ════════════════ 섹션 카드 탭 ════════════════ */}
         {activeTab === 'cards' && (
           <div className="space-y-6">
@@ -499,8 +435,7 @@ export default function AdminSettingsPage() {
 
                 {/* 미리보기 + 불투명도 */}
                 <div className="flex gap-4 items-start">
-                  {/* 미리보기 */}
-                  <div className="w-28 h-18 rounded-xl overflow-hidden bg-[#efefef] shrink-0 relative aspect-video">
+                  <div className="w-28 rounded-xl overflow-hidden bg-[#efefef] shrink-0 relative aspect-video">
                     {card.imageUrl?.startsWith('http') && (
                       <>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -517,7 +452,6 @@ export default function AdminSettingsPage() {
                     )}
                   </div>
 
-                  {/* 불투명도 */}
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="text-xs text-[#737373]">어둡기 (불투명도)</label>
@@ -543,6 +477,97 @@ export default function AdminSettingsPage() {
                 savedCards ? 'bg-[#4a8c2a] text-white' : 'bg-[#0a0a0a] text-white hover:bg-[#262626]'
               } disabled:opacity-50`}>
               {savedCards ? <><Check size={16} /> 저장됐습니다!</> : savingCards ? '저장 중...' : <><Save size={16} /> 섹션 카드 저장</>}
+            </button>
+          </div>
+        )}
+
+        {/* ════════════════ About 이미지 탭 ════════════════ */}
+        {activeTab === 'about' && (
+          <div className="space-y-6">
+            <div className="bg-[#f0f9f0] border border-[#b8e0b8] rounded-2xl p-5">
+              <p className="text-sm font-semibold text-[#2a6a2a] mb-1">📌 About 페이지 이미지 설정</p>
+              <p className="text-xs text-[#2a6a2a] leading-relaxed">
+                소개 섹션 오른쪽 이미지와 브랜드 철학 카드(사람/지역/기록/기획) 배경 이미지를 설정합니다.
+              </p>
+            </div>
+
+            {/* 소개 이미지 */}
+            <div className="bg-white rounded-2xl border border-[#efefef] p-6 space-y-4">
+              <h2 className="text-sm font-semibold text-[#0a0a0a] pb-3 border-b border-[#f0f0f0]">소개 섹션 이미지</h2>
+              <p className="text-xs text-[#a0a0a0]">About 페이지 상단, 소개 텍스트 오른쪽에 표시되는 사진입니다.</p>
+              <div className="flex gap-4 items-start">
+                <div className="w-28 shrink-0 aspect-[4/3] rounded-xl overflow-hidden bg-[#efefef]">
+                  {aboutImages.introImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={aboutImages.introImage} alt="" className="w-full h-full object-cover"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-xs text-[#c8c8c8]">미리보기</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs text-[#737373] mb-1.5">이미지 URL</label>
+                  <div className="relative">
+                    <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c8c8c8]" />
+                    <input type="url"
+                      value={aboutImages.introImage ?? ''}
+                      onChange={e => setAboutImages(prev => ({ ...prev, introImage: e.target.value }))}
+                      placeholder="https://i.imgur.com/example.jpg"
+                      className="w-full text-sm border border-[#efefef] rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-[#a0a0a0] transition-colors placeholder:text-[#d0d0d0]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 철학 카드 이미지 4개 */}
+            <div className="bg-white rounded-2xl border border-[#efefef] p-6 space-y-5">
+              <h2 className="text-sm font-semibold text-[#0a0a0a] pb-3 border-b border-[#f0f0f0]">브랜드 철학 카드 이미지</h2>
+              <p className="text-xs text-[#a0a0a0]">사람·지역·기록·기획 4개 카드의 배경 이미지입니다. 이미지가 없으면 검정 배경으로 표시됩니다.</p>
+              {([
+                { key: 'people',   label: '사람 (People)' },
+                { key: 'place',    label: '지역 (Place)' },
+                { key: 'archive',  label: '기록 (Archive)' },
+                { key: 'curation', label: '기획 (Curation)' },
+              ] as { key: keyof NonNullable<AboutImages['valueImages']>; label: string }[]).map(({ key, label }) => (
+                <div key={key} className="flex gap-4 items-start pb-5 border-b border-[#f8f8f8] last:border-0 last:pb-0">
+                  <div className="w-20 h-14 shrink-0 rounded-lg overflow-hidden bg-[#0a0a0a] relative">
+                    {aboutImages.valueImages?.[key] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={aboutImages.valueImages[key]} alt="" className="w-full h-full object-cover opacity-50"
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-[10px] text-white/30">{label.split(' ')[0]}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs text-[#737373] mb-1.5">{label}</label>
+                    <div className="relative">
+                      <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c8c8c8]" />
+                      <input type="url"
+                        value={aboutImages.valueImages?.[key] ?? ''}
+                        onChange={e => setAboutImages(prev => ({
+                          ...prev,
+                          valueImages: { ...prev.valueImages, [key]: e.target.value },
+                        }))}
+                        placeholder="https://i.imgur.com/example.jpg"
+                        className="w-full text-sm border border-[#efefef] rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-[#a0a0a0] transition-colors placeholder:text-[#d0d0d0]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button onClick={saveAboutImages} disabled={savingAbout}
+              className={`w-full py-4 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
+                savedAbout ? 'bg-[#4a8c2a] text-white' : 'bg-[#0a0a0a] text-white hover:bg-[#262626]'
+              } disabled:opacity-50`}>
+              {savedAbout ? <><Check size={16} /> 저장됐습니다!</> : savingAbout ? '저장 중...' : <><Save size={16} /> About 이미지 저장</>}
             </button>
           </div>
         )}
