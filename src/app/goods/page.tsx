@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowRight, ExternalLink } from 'lucide-react'
 import AnimateIn from '@/components/ui/AnimateIn'
 import { getGoods } from '@/lib/notion'
+import { getSettings } from '@/lib/settings'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +21,10 @@ const typeLabel: Record<string, string> = {
 
 export default async function GoodsPage() {
   const goods = await getGoods()
+  const settings = getSettings()
+  const t = settings.texts
+
+  const lines = (str?: string) => (str ?? '').split('\n')
 
   return (
     <>
@@ -31,13 +36,16 @@ export default async function GoodsPage() {
           </AnimateIn>
           <AnimateIn delay={80}>
             <h1 className="font-semibold text-[clamp(2.5rem,6vw,5rem)] tracking-[-0.03em] leading-[1.05] text-[#0a0a0a] max-w-[700px]">
-              순천의 풍경을<br />일상 속으로.
+              {lines(t.goodsHeading || '순천의 풍경을\n일상 속으로.').map((line, i, arr) => (
+                <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+              ))}
             </h1>
           </AnimateIn>
           <AnimateIn delay={160}>
             <p className="mt-5 text-[#525252] text-base md:text-lg leading-relaxed max-w-[500px]">
-              마그넷, 노트, 엽서 — 순천의 기억을 담은 작은 물건들.
-              인근 기념품점과 문화공간에서 만날 수 있습니다.
+              {lines(t.goodsSubtext || '마그넷, 노트, 엽서 — 순천의 기억을 담은 작은 물건들.\n인근 기념품점과 문화공간에서 만날 수 있습니다.').map((line, i, arr) => (
+                <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+              ))}
             </p>
           </AnimateIn>
         </div>

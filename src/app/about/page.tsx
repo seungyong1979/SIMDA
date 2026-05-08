@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import AnimateIn from '@/components/ui/AnimateIn'
+import { getSettings } from '@/lib/settings'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'About',
@@ -30,6 +33,11 @@ const values = [
 ]
 
 export default function AboutPage() {
+  const settings = getSettings()
+  const t = settings.texts
+
+  const lines = (str?: string) => (str ?? '').split('\n')
+
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────────── */}
@@ -40,7 +48,9 @@ export default function AboutPage() {
           </AnimateIn>
           <AnimateIn delay={80}>
             <h1 className="font-semibold text-[clamp(2.5rem,6vw,5rem)] tracking-[-0.03em] leading-[1.05] text-[#0a0a0a] max-w-[800px]">
-              기록하고 만들고<br />연결하는 일.
+              {lines(t.aboutHeading || '기록하고 만들고\n연결하는 일.').map((line, i, arr) => (
+                <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+              ))}
             </h1>
           </AnimateIn>
         </div>
@@ -52,19 +62,9 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
             <AnimateIn>
               <div className="space-y-6 text-[#262626] text-base md:text-lg leading-relaxed">
-                <p>
-                  심다는 2016년 전남 순천에서 독립서점 <strong>책방 심다</strong>로 시작했습니다.
-                  10년 동안 책과 사람을 연결하며, 지역의 이야기를 기록해왔습니다.
-                </p>
-                <p>
-                  2026년 2월, 책방은 졸업했지만 심다가 해온 일들은 계속됩니다.
-                  공간이 아닌 <strong>콘텐츠 브랜드</strong>로서, 더 넓은 방식으로
-                  지역과 사람을 연결하고자 합니다.
-                </p>
-                <p>
-                  사진 아카이브, 사운드스케이프, 출판, 기념품 — 형태는 달라도
-                  심다가 하는 모든 일의 중심에는 <strong>기록</strong>이 있습니다.
-                </p>
+                <p>{t.aboutIntro1 || '심다는 2016년 전남 순천에서 독립서점 책방 심다로 시작했습니다. 10년 동안 책과 사람을 연결하며, 지역의 이야기를 기록해왔습니다.'}</p>
+                <p>{t.aboutIntro2 || '2026년 2월, 책방은 졸업했지만 심다가 해온 일들은 계속됩니다. 공간이 아닌 콘텐츠 브랜드로서, 더 넓은 방식으로 지역과 사람을 연결하고자 합니다.'}</p>
+                <p>{t.aboutIntro3 || '사진 아카이브, 사운드스케이프, 출판, 기념품 — 형태는 달라도 심다가 하는 모든 일의 중심에는 기록이 있습니다.'}</p>
               </div>
             </AnimateIn>
             <AnimateIn delay={120}>

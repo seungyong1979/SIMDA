@@ -28,11 +28,13 @@ export default async function AdminDashboard() {
   ]
 
   const menuItems = [
+    { label: '사이트 설정',      desc: '히어로 이미지 및 페이지별 텍스트 편집', href: '/admin/settings',     icon: '⚙️' },
     { label: '도서 관리',        desc: '책 목록 조회 및 Notion에서 관리',       href: '/admin/books',        icon: '📚' },
     { label: '프로젝트 관리',    desc: '프로젝트 목록 조회 및 Notion에서 관리', href: '/admin/projects',     icon: '🗂️' },
     { label: '굿즈 관리',        desc: '제품 목록 조회 및 Notion에서 관리',     href: '/admin/goods',        icon: '🎁' },
     { label: '사운드 앨범 관리', desc: '앨범 목록 조회 및 Notion에서 관리',     href: '/admin/sound-albums', icon: '🎵' },
     { label: '사진 아카이브',    desc: '사진 목록 조회 및 Notion에서 관리',     href: '/admin/photos',       icon: '📷' },
+    { label: '사이트 설정',      desc: '히어로 이미지 및 각 페이지 텍스트 편집', href: '/admin/settings',     icon: '⚙️' },
     { label: '사이트 방문',      desc: '실제 사이트 확인',                      href: '/',                   icon: '🌐', external: true },
   ]
 
@@ -78,6 +80,20 @@ export default async function AdminDashboard() {
             </Link>
           ))}
         </div>
+
+        {/* 사이트 설정 바로가기 */}
+        <Link href="/admin/settings">
+          <div className="bg-[#0a0a0a] rounded-2xl p-6 mb-4 hover:bg-[#262626] transition-colors duration-200 cursor-pointer">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-white/40 text-xs tracking-[0.15em] uppercase mb-1">사이트 설정</p>
+                <h2 className="text-white text-base font-semibold mb-1">히어로 이미지 & 페이지 텍스트 편집</h2>
+                <p className="text-white/50 text-sm">홈 화면 슬라이드 이미지 업로드, 각 페이지의 제목·소개글 수정</p>
+              </div>
+              <span className="text-3xl shrink-0">⚙️</span>
+            </div>
+          </div>
+        </Link>
 
         {/* Notion 바로가기 */}
         <div className="bg-white rounded-2xl border border-[#efefef] p-6 mb-6">

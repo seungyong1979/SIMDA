@@ -48,7 +48,7 @@ export interface SoundTrack {
 
 export interface SoundAlbum {
   id: string
-  albumNumber: string   // e.g. "01", "02"
+  albumNumber: string
   title: string
   description: string
   coverImage: string
@@ -90,4 +90,49 @@ export interface NavItem {
   label: string
   href: string
   subItems?: NavItem[]
+}
+
+// ─── Site Settings ───────────────────────────────────────────────
+export interface HeroImage {
+  url: string
+  alt?: string
+}
+
+export interface PageTexts {
+  // Home
+  homeTagline?: string        // "Suncheon · Since 2016"
+  homeHeading?: string        // "사람, 지역, 기록, 기획."
+  homeSubtext?: string        // "심다는 순천을 기반으로..."
+  homeBrandText?: string      // "책방을 졸업한 뒤에도..."
+  homeCtaText?: string        // "함께 만들고 싶은 일이 있으신가요?"
+  // About
+  aboutHeading?: string
+  aboutSubtext?: string
+  aboutIntro1?: string
+  aboutIntro2?: string
+  aboutIntro3?: string
+  // Archive
+  archiveHeading?: string
+  archiveSubtext?: string
+  // Publishing
+  publishingHeading?: string
+  publishingSubtext?: string
+  // Program
+  programHeading?: string
+  programSubtext?: string
+  // Goods
+  goodsHeading?: string
+  goodsSubtext?: string
+  // Projects
+  projectsHeading?: string
+  projectsSubtext?: string
+  // Contact
+  contactHeading?: string
+  contactSubtext?: string
+}
+
+export interface SiteSettings {
+  heroImages: HeroImage[]     // 최대 5장
+  heroInterval: number        // 슬라이드 전환 간격 (초)
+  texts: PageTexts
 }

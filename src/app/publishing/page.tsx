@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import AnimateIn from '@/components/ui/AnimateIn'
 import { getBooks } from '@/lib/notion'
+import { getSettings } from '@/lib/settings'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +14,10 @@ export const metadata: Metadata = {
 
 export default async function PublishingPage() {
   const books = await getBooks()
+  const settings = getSettings()
+  const t = settings.texts
+
+  const lines = (str?: string) => (str ?? '').split('\n')
 
   return (
     <>
@@ -24,13 +29,16 @@ export default async function PublishingPage() {
           </AnimateIn>
           <AnimateIn delay={80}>
             <h1 className="font-semibold text-[clamp(2.5rem,6vw,5rem)] tracking-[-0.03em] leading-[1.05] text-[#0a0a0a] max-w-[700px]">
-              지역의 작은<br />이야기들.
+              {lines(t.publishingHeading || '지역의 작은\n이야기들.').map((line, i, arr) => (
+                <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+              ))}
             </h1>
           </AnimateIn>
           <AnimateIn delay={160}>
             <p className="mt-5 text-[#525252] text-base md:text-lg leading-relaxed max-w-[500px]">
-              사라지기 전에 남겨두고 싶은 이야기들을 책으로 만듭니다.
-              순천과 그 주변의 풍경, 사람, 기억.
+              {lines(t.publishingSubtext || '사라지기 전에 남겨두고 싶은 이야기들을 책으로 만듭니다.\n순천과 그 주변의 풍경, 사람, 기억.').map((line, i, arr) => (
+                <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+              ))}
             </p>
           </AnimateIn>
         </div>

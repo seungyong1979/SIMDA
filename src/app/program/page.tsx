@@ -2,6 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, MapPin, Clock, Users, Banknote, CalendarDays } from 'lucide-react'
 import AnimateIn from '@/components/ui/AnimateIn'
+import { getSettings } from '@/lib/settings'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Program',
@@ -23,6 +26,11 @@ const prepareItems = [
 ]
 
 export default function ProgramPage() {
+  const settings = getSettings()
+  const t = settings.texts
+
+  const lines = (str?: string) => (str ?? '').split('\n')
+
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────────── */}
@@ -33,12 +41,14 @@ export default function ProgramPage() {
           </AnimateIn>
           <AnimateIn delay={80}>
             <h1 className="text-white font-semibold text-[clamp(2.5rem,6vw,5rem)] tracking-[-0.03em] leading-[1.05] max-w-[700px]">
-              소리 풍경 속을<br />함께 걷습니다.
+              {lines(t.programHeading || '소리 풍경 속을\n함께 걷습니다.').map((line, i, arr) => (
+                <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+              ))}
             </h1>
           </AnimateIn>
           <AnimateIn delay={160}>
             <p className="mt-5 text-white/50 text-base md:text-lg leading-relaxed max-w-[500px]">
-              Sound Walking — 귀를 열고, 천천히, 지금 이 장소의 소리를 듣습니다.
+              {t.programSubtext || 'Sound Walking — 귀를 열고, 천천히, 지금 이 장소의 소리를 듣습니다.'}
             </p>
           </AnimateIn>
 

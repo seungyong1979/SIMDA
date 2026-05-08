@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import AnimateIn from '@/components/ui/AnimateIn'
 import { getProjects } from '@/lib/notion'
+import { getSettings } from '@/lib/settings'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,6 +32,10 @@ const categoryColors: Record<string, string> = {
 
 export default async function ProjectsPage() {
   const projects = await getProjects()
+  const settings = getSettings()
+  const t = settings.texts
+
+  const lines = (str?: string) => (str ?? '').split('\n')
 
   return (
     <>
@@ -42,13 +47,16 @@ export default async function ProjectsPage() {
           </AnimateIn>
           <AnimateIn delay={80}>
             <h1 className="font-semibold text-[clamp(2.5rem,6vw,5rem)] tracking-[-0.03em] leading-[1.05] text-[#0a0a0a] max-w-[700px]">
-              함께 만들어온<br />것들.
+              {lines(t.projectsHeading || '함께 만들어온\n것들.').map((line, i, arr) => (
+                <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+              ))}
             </h1>
           </AnimateIn>
           <AnimateIn delay={160}>
             <p className="mt-5 text-[#525252] text-base md:text-lg leading-relaxed max-w-[500px]">
-              사진, 사운드, 출판, 지역협업, 행사, 콘텐츠 기획 —
-              심다가 진행해온 프로젝트들을 소개합니다.
+              {lines(t.projectsSubtext || '사진, 사운드, 출판, 지역협업, 행사, 콘텐츠 기획 —\n심다가 진행해온 프로젝트들을 소개합니다.').map((line, i, arr) => (
+                <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+              ))}
             </p>
           </AnimateIn>
         </div>
