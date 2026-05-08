@@ -1,33 +1,35 @@
 import { Client } from '@notionhq/client'
 import type { Book, Project, PhotoItem, SoundAlbum, SoundTrack, Goods } from '@/types'
 
-// Notion 클라이언트 초기화
+// Notion 클라이언트 초기화 — 항상 최신 데이터 (캐시 없음)
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
+  fetch: (url, init) =>
+    fetch(url, { ...init, cache: 'no-store' }),
 })
 
 // ─── 데이터베이스 ID 환경변수 ─────────────────────────────────────
 const DB = {
-  books:       process.env.NOTION_DB_BOOKS       ?? '',
-  projects:    process.env.NOTION_DB_PROJECTS    ?? '',
-  photos:      process.env.NOTION_DB_PHOTOS      ?? '',
+  books:       process.env.NOTION_DB_BOOKS        ?? '',
+  projects:    process.env.NOTION_DB_PROJECTS     ?? '',
+  photos:      process.env.NOTION_DB_PHOTOS       ?? '',
   soundAlbums: process.env.NOTION_DB_SOUND_ALBUMS ?? '',
-  goods:       process.env.NOTION_DB_GOODS       ?? '',
+  goods:       process.env.NOTION_DB_GOODS        ?? '',
 }
 
 // ─── 공통 헬퍼 ───────────────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getText(prop: any): string {
   if (!prop) return ''
-  if (prop.type === 'title')       return prop.title?.[0]?.plain_text ?? ''
-  if (prop.type === 'rich_text')   return prop.rich_text?.[0]?.plain_text ?? ''
-  if (prop.type === 'select')      return prop.select?.name ?? ''
+  if (prop.type === 'title')        return prop.title?.[0]?.plain_text ?? ''
+  if (prop.type === 'rich_text')    return prop.rich_text?.[0]?.plain_text ?? ''
+  if (prop.type === 'select')       return prop.select?.name ?? ''
   if (prop.type === 'multi_select') return prop.multi_select?.map((s: {name:string}) => s.name).join(', ') ?? ''
-  if (prop.type === 'number')      return String(prop.number ?? '')
-  if (prop.type === 'url')         return prop.url ?? ''
-  if (prop.type === 'checkbox')    return String(prop.checkbox ?? false)
-  if (prop.type === 'date')        return prop.date?.start ?? ''
-  if (prop.type === 'formula')     return String(prop.formula?.string ?? prop.formula?.number ?? '')
+  if (prop.type === 'number')       return String(prop.number ?? '')
+  if (prop.type === 'url')          return prop.url ?? ''
+  if (prop.type === 'checkbox')     return String(prop.checkbox ?? false)
+  if (prop.type === 'date')         return prop.date?.start ?? ''
+  if (prop.type === 'formula')      return String(prop.formula?.string ?? prop.formula?.number ?? '')
   return ''
 }
 
@@ -35,7 +37,6 @@ function getText(prop: any): string {
 function getCover(page: any): string {
   if (page.cover?.type === 'external') return page.cover.external.url
   if (page.cover?.type === 'file')     return page.cover.file.url
-  // 파일 속성에서 첫 번째 이미지 추출
   const files = page.properties?.['표지']?.files ?? page.properties?.['Cover']?.files ?? []
   if (files.length > 0) {
     return files[0].type === 'external' ? files[0].external.url : files[0].file.url
@@ -110,6 +111,11 @@ export async function getProjects(): Promise<Project[]> {
     console.error('Notion getProjects error:', e)
     return getMockProjects()
   }
+}
+
+export async function getProjectById(id: string): Promise<Project | null> {
+  const projects = await getProjects()
+  return projects.find(p => p.id === id) ?? null
 }
 
 // ─── Photos ───────────────────────────────────────────────────────
@@ -206,7 +212,7 @@ function getMockBooks(): Book[] {
       year: '2023',
       author: '심다',
       description: '순천 원도심의 골목 하나하나를 걸으며 기록한 사진·글의 아카이브. 사라지기 전에 남겨두고 싶은 풍경들.',
-      coverImage: '/images/mock/book1.jpg',
+      coverImage: '/images/placeholder.jpg',
       interiorImages: [],
       isAvailable: true,
       category: '지역기록',
@@ -218,7 +224,7 @@ function getMockBooks(): Book[] {
       year: '2022',
       author: '심다',
       description: '순천만 와온 해변의 사계절을 담은 사진집. 갈대와 바람과 빛의 이야기.',
-      coverImage: '/images/mock/book2.jpg',
+      coverImage: '/images/placeholder.jpg',
       interiorImages: [],
       isAvailable: true,
       category: '지역기록',
@@ -235,7 +241,7 @@ function getMockProjects(): Project[] {
       period: '2024',
       client: '순천시',
       category: 'sound',
-      description: '원도심 주요 장소의 소리 풍경을 기록하는 프로젝트. 시장 소리, 골목 소리, 계절의 소리.',
+      description: '원도심 주요 장소의 소리 풍경을 기록하는 프로젝트.',
       result: '사운드 앨범 02 제작',
       images: [],
       tags: ['사운드', '순천', '아카이브'],
@@ -256,9 +262,9 @@ function getMockProjects(): Project[] {
 
 function getMockPhotos(): PhotoItem[] {
   return [
-    { id: 'ph-1', title: '순천만 일출', category: 'local', image: '/images/mock/photo1.jpg', location: '순천만' },
-    { id: 'ph-2', title: '원도심 골목', category: 'daily', image: '/images/mock/photo2.jpg', location: '순천 원도심' },
-    { id: 'ph-3', title: '항공 — 순천만 갈대', category: 'aerial', image: '/images/mock/photo3.jpg', location: '순천만' },
+    { id: 'ph-1', title: '순천만 일출', category: 'local', image: '/images/placeholder.jpg', location: '순천만' },
+    { id: 'ph-2', title: '원도심 골목', category: 'daily', image: '/images/placeholder.jpg', location: '순천 원도심' },
+    { id: 'ph-3', title: '항공 — 순천만 갈대', category: 'aerial', image: '/images/placeholder.jpg', location: '순천만' },
   ]
 }
 
@@ -268,28 +274,13 @@ function getMockSoundAlbums(): SoundAlbum[] {
       id: 'sa-1',
       albumNumber: '01',
       title: '순천만의 소리',
-      description: '새벽 안개 속 순천만에서 채집한 소리들. 갈대 스치는 소리, 철새 울음, 물결 소리.',
-      coverImage: '/images/mock/sound1.jpg',
+      description: '새벽 안개 속 순천만에서 채집한 소리들.',
+      coverImage: '/images/placeholder.jpg',
       location: '순천만 국가정원',
       recordedAt: '2023년 겨울',
       tracks: [
         { id: 't1', title: '새벽 갈대밭', duration: '4:32', audioUrl: '', description: '동틀 무렵의 갈대 소리' },
         { id: 't2', title: '철새의 아침', duration: '3:18', audioUrl: '', description: '흑두루미 울음소리' },
-        { id: 't3', title: '물결과 바람', duration: '5:07', audioUrl: '', description: '수면 위 바람 소리' },
-      ],
-      relatedImages: [],
-    },
-    {
-      id: 'sa-2',
-      albumNumber: '02',
-      title: '원도심의 하루',
-      description: '순천 원도심 시장과 골목에서 기록한 일상의 소리들. 상인의 목소리, 골목길 발소리, 저녁 종소리.',
-      coverImage: '/images/mock/sound2.jpg',
-      location: '순천 원도심',
-      recordedAt: '2024년 봄',
-      tracks: [
-        { id: 't4', title: '아침 시장', duration: '6:14', audioUrl: '', description: '개장 전 시장의 소리' },
-        { id: 't5', title: '골목의 오후', duration: '4:45', audioUrl: '', description: '오후 햇살과 골목 소리' },
       ],
       relatedImages: [],
     },
@@ -302,7 +293,7 @@ function getMockGoods(): Goods[] {
       id: 'g-1',
       name: '순천만 마그넷',
       type: 'magnet',
-      description: '순천만 갈대밭과 철새를 담은 마그넷 시리즈. 순천의 대표 풍경을 일상 속으로.',
+      description: '순천만 갈대밭과 철새를 담은 마그넷 시리즈.',
       spec: '55×55mm, 아크릴',
       images: [],
       isAvailable: true,
@@ -311,7 +302,7 @@ function getMockGoods(): Goods[] {
       id: 'g-2',
       name: '심다 노트',
       type: 'notebook',
-      description: '기록하는 삶을 위한 심다 노트. 지역 풍경 일러스트 표지.',
+      description: '기록하는 삶을 위한 심다 노트.',
       spec: 'A6, 100p, 무선제본',
       images: [],
       isAvailable: true,
@@ -320,7 +311,7 @@ function getMockGoods(): Goods[] {
       id: 'g-3',
       name: '순천 엽서 세트',
       type: 'postcard',
-      description: '순천의 계절을 담은 엽서 4종 세트. 봄·여름·가을·겨울.',
+      description: '순천의 계절을 담은 엽서 4종 세트.',
       spec: '100×148mm, 4종 세트',
       images: [],
       isAvailable: true,

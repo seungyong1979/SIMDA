@@ -4,6 +4,8 @@ import { ArrowRight } from 'lucide-react'
 import AnimateIn from '@/components/ui/AnimateIn'
 import { getProjects } from '@/lib/notion'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Projects',
   description: '심다가 진행해온 프로젝트들. 사진, 사운드, 출판, 지역협업.',

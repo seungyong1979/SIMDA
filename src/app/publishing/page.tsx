@@ -4,6 +4,8 @@ import { ArrowRight } from 'lucide-react'
 import AnimateIn from '@/components/ui/AnimateIn'
 import { getBooks } from '@/lib/notion'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Publishing',
   description: '지역의 작은 이야기를 책으로 엮습니다. 심다 출판 목록.',

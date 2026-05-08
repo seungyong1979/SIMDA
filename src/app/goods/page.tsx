@@ -4,6 +4,8 @@ import { ArrowRight, ExternalLink } from 'lucide-react'
 import AnimateIn from '@/components/ui/AnimateIn'
 import { getGoods } from '@/lib/notion'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Goods',
   description: '순천의 풍경을 담은 심다 기념품. 마그넷, 노트, 엽서.',

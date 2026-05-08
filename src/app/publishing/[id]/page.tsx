@@ -4,6 +4,8 @@ import { ArrowLeft, ArrowRight } from 'lucide-react'
 import AnimateIn from '@/components/ui/AnimateIn'
 import { getBooks, getBookById } from '@/lib/notion'
 
+export const dynamic = 'force-dynamic'
+
 export async function generateStaticParams() {
   const books = await getBooks()
   return books.map((b) => ({ id: b.id }))
