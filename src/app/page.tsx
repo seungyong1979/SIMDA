@@ -149,12 +149,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <style jsx>{`
-        @keyframes scrollLine {
-          0%   { transform: translateY(-100%); }
-          100% { transform: translateY(250%); }
-        }
-      `}</style>
     </>
   )
 }

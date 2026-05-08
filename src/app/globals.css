@@ -105,4 +105,9 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #737373;
   }
+
+  @keyframes scrollLine {
+    0%   { transform: translateY(-100%); }
+    100% { transform: translateY(250%); }
+  }
 }
