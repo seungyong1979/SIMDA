@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Upload, X, GripVertical, Save, Check } from 'lucide-react'
+import { ArrowLeft, Plus, X, GripVertical, Save, Check, Link as LinkIcon } from 'lucide-react'
 import type { SiteSettings, HeroImage } from '@/types'
 
 // 텍스트 필드 정의
@@ -72,18 +72,18 @@ const TEXT_FIELDS = [
 
 export default function AdminSettingsPage() {
   const router = useRouter()
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [settings, setSettings] = useState<SiteSettings | null>(null)
-  const [texts, setTexts] = useState<Record<string, string>>({})
-  const [heroImages, setHeroImages] = useState<HeroImage[]>([])
+  const [settings, setSettings]       = useState<SiteSettings | null>(null)
+  const [texts, setTexts]             = useState<Record<string, string>>({})
+  const [heroImages, setHeroImages]   = useState<HeroImage[]>([])
   const [heroInterval, setHeroInterval] = useState(5)
-  const [uploading, setUploading] = useState(false)
+  const [newUrl, setNewUrl]           = useState('')
+  const [urlError, setUrlError]       = useState('')
   const [savingTexts, setSavingTexts] = useState(false)
-  const [savingHero, setSavingHero] = useState(false)
-  const [savedTexts, setSavedTexts] = useState(false)
-  const [savedHero, setSavedHero] = useState(false)
-  const [activeTab, setActiveTab] = useState<'hero' | 'texts'>('hero')
+  const [savingHero, setSavingHero]   = useState(false)
+  const [savedTexts, setSavedTexts]   = useState(false)
+  const [savedHero, setSavedHero]     = useState(false)
+  const [activeTab, setActiveTab]     = useState<'hero' | 'texts'>('hero')
 
   useEffect(() => {
     fetch('/api/admin/settings')
@@ -96,28 +96,21 @@ export default function AdminSettingsPage() {
       })
   }, [])
 
-  // 이미지 업로드
-  const handleFileUpload = async (files: FileList) => {
-    if (heroImages.length >= 5) {
-      alert('히어로 이미지는 최대 5장까지 등록할 수 있습니다.')
+  // URL 추가
+  const addImageUrl = () => {
+    const url = newUrl.trim()
+    if (!url) return
+    if (!/^https?:\/\/.+/.test(url)) {
+      setUrlError('http:// 또는 https:// 로 시작하는 URL을 입력해주세요.')
       return
     }
-    const remaining = 5 - heroImages.length
-    const toUpload = Array.from(files).slice(0, remaining)
-
-    setUploading(true)
-    const newImages: HeroImage[] = []
-    for (const file of toUpload) {
-      const fd = new FormData()
-      fd.append('file', file)
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-      if (res.ok) {
-        const { url } = await res.json()
-        newImages.push({ url, alt: file.name.replace(/\.[^.]+$/, '') })
-      }
+    if (heroImages.length >= 5) {
+      setUrlError('히어로 이미지는 최대 5장까지 등록할 수 있습니다.')
+      return
     }
-    setHeroImages(prev => [...prev, ...newImages])
-    setUploading(false)
+    setUrlError('')
+    setHeroImages(prev => [...prev, { url, alt: '' }])
+    setNewUrl('')
   }
 
   // 이미지 삭제
@@ -125,7 +118,7 @@ export default function AdminSettingsPage() {
     setHeroImages(prev => prev.filter((_, i) => i !== idx))
   }
 
-  // 이미지 순서 변경 (위/아래)
+  // 이미지 순서 변경
   const moveImage = (idx: number, dir: -1 | 1) => {
     const next = idx + dir
     if (next < 0 || next >= heroImages.length) return
@@ -204,51 +197,70 @@ export default function AdminSettingsPage() {
         {/* ── 히어로 이미지 탭 ── */}
         {activeTab === 'hero' && (
           <div className="space-y-6">
+
+            {/* 안내 배너 */}
+            <div className="bg-[#fff8e6] border border-[#ffe0a0] rounded-2xl p-5">
+              <p className="text-sm font-semibold text-[#a06000] mb-2">📌 이미지 URL 입력 방식 안내</p>
+              <p className="text-xs text-[#a06000] leading-relaxed">
+                서버 재시작 시 업로드 파일이 사라지기 때문에 <strong>외부 이미지 URL</strong>을 사용합니다.<br />
+                아래 방법 중 하나로 이미지 URL을 복사해서 붙여넣어 주세요.
+              </p>
+              <div className="mt-3 space-y-1.5 text-xs text-[#a06000]">
+                <p>• <strong>Google Drive</strong>: 파일 우클릭 → 공유 → 링크 복사 후 <code className="bg-[#ffe0a0] px-1 rounded">uc?id=</code> 형식으로 변환</p>
+                <p>• <strong>Imgur</strong>: imgur.com 업로드 후 이미지 우클릭 → &quot;이미지 주소 복사&quot;</p>
+                <p>• <strong>노션 이미지</strong>: 노션에서 이미지 우클릭 → &quot;이미지 주소 복사&quot; (1시간 후 만료됨 — 비추천)</p>
+              </div>
+            </div>
+
             <div className="bg-white rounded-2xl border border-[#efefef] p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-base font-semibold text-[#0a0a0a]">히어로 이미지</h2>
-                  <p className="text-xs text-[#a0a0a0] mt-0.5">최대 5장 · JPG/PNG/WEBP · 10MB 이하 · 권장 비율 16:9</p>
+                  <p className="text-xs text-[#a0a0a0] mt-0.5">최대 5장 · 권장 비율 16:9 · 외부 이미지 URL 사용</p>
                 </div>
                 <span className="text-sm text-[#a0a0a0]">{heroImages.length} / 5</span>
               </div>
 
-              {/* 업로드 영역 */}
+              {/* URL 입력 */}
               {heroImages.length < 5 && (
-                <div
-                  className="border-2 border-dashed border-[#dfdfdf] rounded-xl p-8 text-center cursor-pointer hover:border-[#a0a0a0] transition-colors duration-200 mb-5"
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={e => { e.preventDefault(); handleFileUpload(e.dataTransfer.files) }}
-                >
-                  <Upload size={24} className="text-[#c8c8c8] mx-auto mb-2" />
-                  <p className="text-sm text-[#737373]">클릭하거나 드래그해서 이미지 업로드</p>
-                  <p className="text-xs text-[#a0a0a0] mt-1">남은 슬롯: {5 - heroImages.length}장</p>
-                  {uploading && <p className="text-xs text-[#0a0a0a] mt-2 font-medium">업로드 중...</p>}
+                <div className="mb-5">
+                  <label className="block text-xs text-[#737373] mb-2">이미지 URL 추가</label>
+                  <div className="flex gap-2">
+                    <div className="flex-1 relative">
+                      <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c8c8c8]" />
+                      <input
+                        type="url"
+                        value={newUrl}
+                        onChange={e => { setNewUrl(e.target.value); setUrlError('') }}
+                        onKeyDown={e => e.key === 'Enter' && addImageUrl()}
+                        placeholder="https://i.imgur.com/example.jpg"
+                        className="w-full text-sm border border-[#efefef] rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-[#a0a0a0] transition-colors placeholder:text-[#d0d0d0]"
+                      />
+                    </div>
+                    <button
+                      onClick={addImageUrl}
+                      className="px-4 py-3 bg-[#0a0a0a] text-white text-sm rounded-xl hover:bg-[#262626] transition-colors flex items-center gap-1.5 shrink-0"
+                    >
+                      <Plus size={14} /> 추가
+                    </button>
+                  </div>
+                  {urlError && <p className="text-xs text-red-500 mt-1.5">{urlError}</p>}
                 </div>
               )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                className="hidden"
-                onChange={e => e.target.files && handleFileUpload(e.target.files)}
-              />
 
               {/* 이미지 목록 */}
-              {heroImages.length > 0 && (
-                <div className="space-y-3 mb-6">
+              {heroImages.length > 0 ? (
+                <div className="space-y-3 mb-2">
                   {heroImages.map((img, i) => (
                     <div key={i} className="flex items-center gap-3 bg-[#f8f8f8] rounded-xl p-3">
                       {/* 순서 이동 */}
-                      <div className="flex flex-col gap-0.5">
+                      <div className="flex flex-col gap-0.5 items-center">
                         <button
                           onClick={() => moveImage(i, -1)}
                           disabled={i === 0}
                           className="text-[#c8c8c8] hover:text-[#0a0a0a] disabled:opacity-20 transition-colors text-xs leading-none"
                         >▲</button>
-                        <GripVertical size={14} className="text-[#c8c8c8] mx-auto" />
+                        <GripVertical size={14} className="text-[#c8c8c8]" />
                         <button
                           onClick={() => moveImage(i, 1)}
                           disabled={i === heroImages.length - 1}
@@ -259,12 +271,17 @@ export default function AdminSettingsPage() {
                       {/* 미리보기 */}
                       <div className="w-20 h-12 rounded-lg overflow-hidden bg-[#efefef] shrink-0">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={img.url} alt={img.alt ?? ''} className="w-full h-full object-cover" />
+                        <img
+                          src={img.url}
+                          alt={img.alt ?? ''}
+                          className="w-full h-full object-cover"
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                        />
                       </div>
 
-                      {/* 순서 + URL */}
+                      {/* 번호 + URL */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-[#0a0a0a]">이미지 {i + 1}</p>
+                        <p className="text-xs font-medium text-[#0a0a0a] mb-0.5">이미지 {i + 1}</p>
                         <p className="text-xs text-[#a0a0a0] truncate">{img.url}</p>
                       </div>
 
@@ -273,16 +290,14 @@ export default function AdminSettingsPage() {
                         onClick={() => removeImage(i)}
                         className="w-7 h-7 rounded-full bg-[#efefef] hover:bg-red-100 flex items-center justify-center transition-colors shrink-0"
                       >
-                        <X size={13} className="text-[#737373] hover:text-red-500" />
+                        <X size={13} className="text-[#737373]" />
                       </button>
                     </div>
                   ))}
                 </div>
-              )}
-
-              {heroImages.length === 0 && (
-                <p className="text-center text-sm text-[#a0a0a0] py-4">
-                  이미지를 업로드하면 히어로 슬라이드쇼가 활성화됩니다.
+              ) : (
+                <p className="text-center text-sm text-[#a0a0a0] py-6">
+                  이미지 URL을 추가하면 히어로 슬라이드쇼가 활성화됩니다.
                 </p>
               )}
             </div>
