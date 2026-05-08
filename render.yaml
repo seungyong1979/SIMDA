@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: simda-website
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: node .next/standalone/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NOTION_TOKEN
+        sync: false
+      - key: NOTION_DB_BOOKS
+        sync: false
+      - key: NOTION_DB_PROJECTS
+        sync: false
+      - key: NOTION_DB_PHOTOS
+        sync: false
+      - key: NOTION_DB_SOUND_ALBUMS
+        sync: false
+      - key: NOTION_DB_GOODS
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
