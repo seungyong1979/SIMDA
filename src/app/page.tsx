@@ -23,7 +23,7 @@ const sectionLabels: Record<string, { title: string; desc: string }> = {
 
 export default function HomePage() {
   const settings = getSettings()
-  const { texts, heroImages, heroInterval } = settings
+  const { texts, heroImages, heroInterval, sectionCards = [] } = settings
 
   const heading = texts.homeHeading ?? '사람, 지역,\n기록, 기획.'
   const tagline  = texts.homeTagline  ?? 'Suncheon · Since 2016'
@@ -100,29 +100,51 @@ export default function HomePage() {
       <section className="pb-32 bg-[#fafafa]">
         <div className="container-site">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-            {sections.map((s, i) => (
-              <AnimateIn key={s.id} delay={i * 80} direction="up">
-                <Link href={s.href} className={cn('group relative block rounded-2xl overflow-hidden aspect-[4/3] md:aspect-[16/10]', s.bg)}>
-                  <div className="absolute inset-0 p-8 md:p-10 flex flex-col justify-between">
-                    <p className={cn('text-xs tracking-[0.2em] uppercase', s.dark ? 'text-white/40' : 'text-[#737373]')}>
-                      {s.label}
-                    </p>
-                    <div>
-                      <h3 className={cn('text-3xl md:text-4xl font-semibold tracking-tight', s.dark ? 'text-white' : 'text-[#0a0a0a]')}>
-                        {sectionLabels[s.id].title}
-                      </h3>
-                      <p className={cn('mt-2 text-sm leading-relaxed', s.dark ? 'text-white/50' : 'text-[#737373]')}>
-                        {sectionLabels[s.id].desc}
+            {sections.map((s, i) => {
+              const card = sectionCards.find(c => c.id === s.id)
+              const cardImg = card?.imageUrl ?? ''
+              const cardOverlay = (card?.imageOverlay ?? (s.dark ? 40 : 20)) / 100
+              const hasBg = cardImg.startsWith('http')
+              // 배경 이미지가 있으면 항상 어두운 텍스트 색상(white)
+              const isDark = hasBg ? true : s.dark
+              return (
+                <AnimateIn key={s.id} delay={i * 80} direction="up">
+                  <Link href={s.href} className={cn(
+                    'group relative block rounded-2xl overflow-hidden aspect-[4/3] md:aspect-[16/10]',
+                    hasBg ? 'bg-[#0a0a0a]' : s.bg,
+                  )}>
+                    {/* 배경 이미지 */}
+                    {hasBg && (
+                      <>
+                        <div
+                          className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                          style={{ backgroundImage: `url('${cardImg}')` }}
+                        />
+                        <div className="absolute inset-0 bg-black" style={{ opacity: cardOverlay }} />
+                      </>
+                    )}
+                    {/* 텍스트 */}
+                    <div className="absolute inset-0 p-8 md:p-10 flex flex-col justify-between">
+                      <p className={cn('text-xs tracking-[0.2em] uppercase', isDark ? 'text-white/40' : 'text-[#737373]')}>
+                        {s.label}
                       </p>
-                      <div className={cn('mt-5 inline-flex items-center gap-2 text-xs tracking-wide transition-all duration-300 group-hover:gap-3', s.dark ? 'text-white' : 'text-[#0a0a0a]')}>
-                        자세히 보기 <ArrowRight size={13} />
+                      <div>
+                        <h3 className={cn('text-3xl md:text-4xl font-semibold tracking-tight', isDark ? 'text-white' : 'text-[#0a0a0a]')}>
+                          {sectionLabels[s.id].title}
+                        </h3>
+                        <p className={cn('mt-2 text-sm leading-relaxed', isDark ? 'text-white/60' : 'text-[#737373]')}>
+                          {sectionLabels[s.id].desc}
+                        </p>
+                        <div className={cn('mt-5 inline-flex items-center gap-2 text-xs tracking-wide transition-all duration-300 group-hover:gap-3', isDark ? 'text-white' : 'text-[#0a0a0a]')}>
+                          자세히 보기 <ArrowRight size={13} />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className={cn('absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500', s.dark ? 'bg-white/5' : 'bg-[#0a0a0a]/5')} />
-                </Link>
-              </AnimateIn>
-            ))}
+                    <div className={cn('absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500', isDark ? 'bg-white/5' : 'bg-[#0a0a0a]/5')} />
+                  </Link>
+                </AnimateIn>
+              )
+            })}
           </div>
         </div>
       </section>

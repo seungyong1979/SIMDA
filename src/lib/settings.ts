@@ -1,12 +1,18 @@
 import fs from 'fs'
 import path from 'path'
-import type { SiteSettings, PageTexts, HeroImage } from '@/types'
+import type { SiteSettings, PageTexts, HeroImage, SectionCard } from '@/types'
 
 const SETTINGS_PATH = path.join(process.cwd(), 'data', 'site-settings.json')
 
 const DEFAULT_SETTINGS: SiteSettings = {
   heroImages: [],
   heroInterval: 5,
+  sectionCards: [
+    { id: 'archive',    imageUrl: '', imageOverlay: 40 },
+    { id: 'publishing', imageUrl: '', imageOverlay: 20 },
+    { id: 'program',    imageUrl: '', imageOverlay: 40 },
+    { id: 'goods',      imageUrl: '', imageOverlay: 20 },
+  ],
   texts: {
     homeTagline: 'Suncheon · Since 2016',
     homeHeading: '사람, 지역,\n기록, 기획.',
@@ -70,6 +76,13 @@ export function updateHeroImages(images: HeroImage[], interval?: number): SiteSe
     heroImages: images.slice(0, 5),
     heroInterval: interval ?? current.heroInterval,
   }
+  saveSettings(updated)
+  return updated
+}
+
+export function updateSectionCards(cards: SectionCard[]): SiteSettings {
+  const current = getSettings()
+  const updated: SiteSettings = { ...current, sectionCards: cards }
   saveSettings(updated)
   return updated
 }

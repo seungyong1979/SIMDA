@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/app/api/admin/auth/route'
-import { getSettings, updateTexts, updateHeroImages } from '@/lib/settings'
-import type { PageTexts, HeroImage } from '@/types'
+import { getSettings, updateTexts, updateHeroImages, updateSectionCards } from '@/lib/settings'
+import type { PageTexts, HeroImage, SectionCard } from '@/types'
 
 // GET — 현재 설정 조회
 export async function GET(req: NextRequest) {
@@ -29,6 +29,11 @@ export async function PATCH(req: NextRequest) {
       body.images as HeroImage[],
       body.interval as number | undefined,
     )
+    return NextResponse.json(updated)
+  }
+
+  if (body.type === 'sectionCards') {
+    const updated = updateSectionCards(body.cards as SectionCard[])
     return NextResponse.json(updated)
   }
 

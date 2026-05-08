@@ -96,6 +96,13 @@ export interface NavItem {
 export interface HeroImage {
   url: string
   alt?: string
+  overlay?: number   // 0~100, 기본값 40 (어두운 오버레이 강도)
+}
+
+export interface SectionCard {
+  id: string
+  imageUrl?: string  // 배경 이미지 URL
+  imageOverlay?: number // 0~100
 }
 
 export interface PageTexts {
@@ -134,5 +141,6 @@ export interface PageTexts {
 export interface SiteSettings {
   heroImages: HeroImage[]     // 최대 5장
   heroInterval: number        // 슬라이드 전환 간격 (초)
+  sectionCards?: SectionCard[] // 홈 섹션 카드 배경 이미지
   texts: PageTexts
 }
