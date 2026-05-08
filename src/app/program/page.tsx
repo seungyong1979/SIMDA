@@ -4,7 +4,7 @@ import { ArrowRight, MapPin, Clock, Users, Banknote, CalendarDays } from 'lucide
 import AnimateIn from '@/components/ui/AnimateIn'
 import { getSettings } from '@/lib/settings'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: 'Program',

@@ -5,7 +5,7 @@ import HeroSlider from '@/components/ui/HeroSlider'
 import { getSettings } from '@/lib/settings'
 import { cn } from '@/lib/utils'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 const sections = [
   { id: 'archive',    label: 'Archive',    href: '/archive',    bg: 'bg-[#1a1a1a]',    dark: true  },

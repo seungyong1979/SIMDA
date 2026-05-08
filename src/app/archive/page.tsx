@@ -1,7 +1,7 @@
 import { getSettings } from '@/lib/settings'
 import ArchiveClient from './ArchiveClient'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export default function ArchivePage() {
   const settings = getSettings()

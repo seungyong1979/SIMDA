@@ -1,11 +1,11 @@
 import { Client } from '@notionhq/client'
 import type { Book, Project, PhotoItem, SoundAlbum, SoundTrack, Goods } from '@/types'
 
-// Notion 클라이언트 초기화 — 항상 최신 데이터 (캐시 없음)
+// Notion 클라이언트 초기화 — 60초 캐싱 (이미지 로딩 속도 개선)
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
   fetch: (url, init) =>
-    fetch(url, { ...init, cache: 'no-store' }),
+    fetch(url, { ...init, next: { revalidate: 60 } }),
 })
 
 // ─── 데이터베이스 ID 환경변수 ─────────────────────────────────────

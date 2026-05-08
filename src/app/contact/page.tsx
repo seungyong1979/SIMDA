@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getSettings } from '@/lib/settings'
 import ContactClient from './ContactClient'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: 'Contact',

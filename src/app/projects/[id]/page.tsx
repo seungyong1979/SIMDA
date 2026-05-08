@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import AnimateIn from '@/components/ui/AnimateIn'
 import { getProjects } from '@/lib/notion'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 const categoryLabel: Record<string, string> = {
   photo:      '사진',

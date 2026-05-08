@@ -5,7 +5,7 @@ import AnimateIn from '@/components/ui/AnimateIn'
 import { getGoods } from '@/lib/notion'
 import { getSettings } from '@/lib/settings'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: 'Goods',
