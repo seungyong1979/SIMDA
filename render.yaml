@@ -24,3 +24,14 @@ services:
         sync: false
       - key: NEXT_PUBLIC_SITE_URL
         sync: false
+      # Cloudflare R2 (관리자 페이지 사진 업로드용 스토리지)
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        sync: false
+      - key: R2_PUBLIC_URL
+        sync: false

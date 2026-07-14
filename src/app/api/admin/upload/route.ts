@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
 import { checkAdminAuth } from '@/app/api/admin/auth/route'
+import { uploadToR2, isR2Configured } from '@/lib/r2'
 
 export async function POST(req: NextRequest) {
   if (!await checkAdminAuth(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!isR2Configured) {
+    return NextResponse.json(
+      { error: 'R2가 설정되지 않았습니다. 관리자에게 문의해주세요.' },
+      { status: 500 }
+    )
   }
 
   const formData = await req.formData()
@@ -23,13 +29,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Only JPG/PNG/WEBP/GIF allowed' }, { status: 400 })
   }
 
-  const ext = file.name.split('.').pop() ?? 'jpg'
-  const filename = `hero-${Date.now()}.${ext}`
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+  try {
+    const ext = file.name.split('.').pop() ?? 'jpg'
+    const filename = `uploads/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    const buffer = Buffer.from(await file.arrayBuffer())
 
-  await mkdir(uploadDir, { recursive: true })
-  const buffer = Buffer.from(await file.arrayBuffer())
-  await writeFile(path.join(uploadDir, filename), buffer)
+    const url = await uploadToR2(buffer, filename, file.type)
 
-  return NextResponse.json({ url: `/uploads/${filename}` })
+    return NextResponse.json({ url })
+  } catch (e) {
+    console.error('R2 upload error:', e)
+    return NextResponse.json({ error: '업로드에 실패했습니다.' }, { status: 500 })
+  }
 }

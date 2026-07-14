@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 's3.us-west-2.amazonaws.com' },
       { protocol: 'https', hostname: 'www.notion.so' },
       { protocol: 'https', hostname: 'notion.so' },
+      // Cloudflare R2 (사이트 이미지 업로드)
+      { protocol: 'https', hostname: 'pub-fb749e3dc48e434dbd8c6bcd897944d3.r2.dev' },
       // 기타 외부 이미지
       { protocol: 'https', hostname: '*.amazonaws.com' },
     ],
