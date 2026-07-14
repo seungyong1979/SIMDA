@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, X, GripVertical, Save, Check, Link as LinkIcon } from 'lucide-react'
+import { ArrowLeft, Plus, X, GripVertical, Save, Check, Link as LinkIcon, Upload, Loader2 } from 'lucide-react'
 import type { SiteSettings, HeroImage, SectionCard, AboutImages } from '@/types'
+import ImageUploadInput from '@/components/admin/ImageUploadInput'
 
 const TEXT_FIELDS = [
   {
@@ -101,6 +102,8 @@ export default function AdminSettingsPage() {
   const [aboutImages, setAboutImages]     = useState<AboutImages>(DEFAULT_ABOUT_IMAGES)
   const [newHeroUrl, setNewHeroUrl]       = useState('')
   const [heroUrlError, setHeroUrlError]   = useState('')
+  const [heroUploading, setHeroUploading] = useState(false)
+  const heroFileInputRef = useRef<HTMLInputElement>(null)
   const [savingTexts, setSavingTexts]     = useState(false)
   const [savingHero, setSavingHero]       = useState(false)
   const [savingCards, setSavingCards]     = useState(false)
@@ -152,6 +155,33 @@ export default function AdminSettingsPage() {
     setHeroUrlError('')
     setHeroImages(prev => [...prev, { url, alt: '', overlay: 40 }])
     setNewHeroUrl('')
+  }
+
+  const handleHeroFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (heroImages.length >= 5) {
+      setHeroUrlError('히어로 이미지는 최대 5장까지 등록할 수 있습니다.')
+      return
+    }
+    setHeroUrlError('')
+    setHeroUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (!res.ok) {
+        setHeroUrlError(data.error ?? '업로드에 실패했습니다.')
+      } else {
+        setHeroImages(prev => [...prev, { url: data.url, alt: '', overlay: 40 }])
+      }
+    } catch {
+      setHeroUrlError('업로드 중 오류가 발생했습니다.')
+    } finally {
+      setHeroUploading(false)
+      if (heroFileInputRef.current) heroFileInputRef.current.value = ''
+    }
   }
 
   const removeHeroImage = (idx: number) =>
@@ -272,15 +302,12 @@ export default function AdminSettingsPage() {
         {activeTab === 'hero' && (
           <div className="space-y-6">
             {/* 안내 배너 */}
-            <div className="bg-[#fff8e6] border border-[#ffe0a0] rounded-2xl p-5">
-              <p className="text-sm font-semibold text-[#a06000] mb-1">📌 외부 이미지 URL 사용 안내</p>
-              <p className="text-xs text-[#a06000] leading-relaxed">
-                Render 서버 재시작 시 업로드 파일이 삭제되므로 외부 URL을 사용합니다.
+            <div className="bg-[#eefaf0] border border-[#b8e8c0] rounded-2xl p-5">
+              <p className="text-sm font-semibold text-[#1a7a3a] mb-1">📌 사진 업로드 안내</p>
+              <p className="text-xs text-[#1a7a3a] leading-relaxed">
+                &quot;사진 선택&quot; 버튼으로 사진을 올리면 Cloudflare R2에 안전하게 저장되고, 링크가 자동으로 입력됩니다.
+                외부 URL(Imgur 등)을 직접 붙여넣어도 됩니다.
               </p>
-              <div className="mt-2 space-y-1 text-xs text-[#a06000]">
-                <p>• <strong>Imgur</strong>: imgur.com 업로드 → 이미지 우클릭 → &quot;이미지 주소 복사&quot; → <code className="bg-[#ffe0a0] px-1 rounded">https://i.imgur.com/xxxxx.jpg</code></p>
-                <p>• <strong>Google Drive</strong>: 공유 링크 ID로 변환 → <code className="bg-[#ffe0a0] px-1 rounded">https://drive.google.com/uc?export=view&amp;id=파일ID</code></p>
-              </div>
             </div>
 
             <div className="bg-white rounded-2xl border border-[#efefef] p-6">
@@ -292,10 +319,28 @@ export default function AdminSettingsPage() {
                 <span className="text-sm text-[#a0a0a0]">{heroImages.length} / 5</span>
               </div>
 
-              {/* URL 입력 */}
+              {/* 사진 추가: 파일 업로드 + URL 직접 입력 */}
               {heroImages.length < 5 && (
                 <div className="mb-6">
-                  <label className="block text-xs text-[#737373] mb-2">이미지 URL 추가</label>
+                  <label className="block text-xs text-[#737373] mb-2">사진 추가</label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => heroFileInputRef.current?.click()}
+                      disabled={heroUploading}
+                      className="px-4 py-3 bg-[#0a0a0a] text-white text-sm rounded-xl hover:bg-[#262626] transition-colors flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                    >
+                      {heroUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                      {heroUploading ? '업로드 중...' : '사진 선택'}
+                    </button>
+                    <input
+                      ref={heroFileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      onChange={handleHeroFileSelect}
+                    />
+                  </div>
+                  <p className="text-xs text-[#c8c8c8] mt-2 mb-2">또는 외부 이미지 URL 직접 입력:</p>
                   <div className="flex gap-2">
                     <div className="flex-1 relative">
                       <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c8c8c8]" />
@@ -310,7 +355,7 @@ export default function AdminSettingsPage() {
                     </div>
                     <button
                       onClick={addHeroUrl}
-                      className="px-4 py-3 bg-[#0a0a0a] text-white text-sm rounded-xl hover:bg-[#262626] transition-colors flex items-center gap-1.5 shrink-0"
+                      className="px-4 py-3 bg-white border border-[#efefef] text-[#0a0a0a] text-sm rounded-xl hover:bg-[#f8f8f8] transition-colors flex items-center gap-1.5 shrink-0"
                     >
                       <Plus size={14} /> 추가
                     </button>
@@ -418,19 +463,14 @@ export default function AdminSettingsPage() {
                   {SECTION_LABELS[card.id]}
                 </h2>
 
-                {/* 이미지 URL */}
+                {/* 배경 사진 */}
                 <div>
-                  <label className="block text-xs text-[#737373] mb-1.5">이미지 URL</label>
-                  <div className="relative">
-                    <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c8c8c8]" />
-                    <input
-                      type="url"
-                      value={card.imageUrl ?? ''}
-                      onChange={e => updateCard(card.id, 'imageUrl', e.target.value)}
-                      placeholder="https://i.imgur.com/example.jpg (비워두면 단색 배경)"
-                      className="w-full text-sm border border-[#efefef] rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-[#a0a0a0] transition-colors placeholder:text-[#d0d0d0]"
-                    />
-                  </div>
+                  <label className="block text-xs text-[#737373] mb-1.5">배경 사진</label>
+                  <ImageUploadInput
+                    value={card.imageUrl ?? ''}
+                    onChange={url => updateCard(card.id, 'imageUrl', url)}
+                    placeholder="https://... (비워두면 단색 배경)"
+                  />
                 </div>
 
                 {/* 미리보기 + 불투명도 */}
@@ -508,16 +548,11 @@ export default function AdminSettingsPage() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs text-[#737373] mb-1.5">이미지 URL</label>
-                  <div className="relative">
-                    <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c8c8c8]" />
-                    <input type="url"
-                      value={aboutImages.introImage ?? ''}
-                      onChange={e => setAboutImages(prev => ({ ...prev, introImage: e.target.value }))}
-                      placeholder="https://i.imgur.com/example.jpg"
-                      className="w-full text-sm border border-[#efefef] rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-[#a0a0a0] transition-colors placeholder:text-[#d0d0d0]"
-                    />
-                  </div>
+                  <label className="block text-xs text-[#737373] mb-1.5">사진</label>
+                  <ImageUploadInput
+                    value={aboutImages.introImage ?? ''}
+                    onChange={url => setAboutImages(prev => ({ ...prev, introImage: url }))}
+                  />
                 </div>
               </div>
             </div>
@@ -546,18 +581,13 @@ export default function AdminSettingsPage() {
                   </div>
                   <div className="flex-1">
                     <label className="block text-xs text-[#737373] mb-1.5">{label}</label>
-                    <div className="relative">
-                      <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c8c8c8]" />
-                      <input type="url"
-                        value={aboutImages.valueImages?.[key] ?? ''}
-                        onChange={e => setAboutImages(prev => ({
-                          ...prev,
-                          valueImages: { ...prev.valueImages, [key]: e.target.value },
-                        }))}
-                        placeholder="https://i.imgur.com/example.jpg"
-                        className="w-full text-sm border border-[#efefef] rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-[#a0a0a0] transition-colors placeholder:text-[#d0d0d0]"
-                      />
-                    </div>
+                    <ImageUploadInput
+                      value={aboutImages.valueImages?.[key] ?? ''}
+                      onChange={url => setAboutImages(prev => ({
+                        ...prev,
+                        valueImages: { ...prev.valueImages, [key]: url },
+                      }))}
+                    />
                   </div>
                 </div>
               ))}

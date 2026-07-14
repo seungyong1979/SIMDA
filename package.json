@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1086.0",
     "@notionhq/client": "^2.2.15",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
